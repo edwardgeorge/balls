@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
+import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (fromStrict)
 import Data.String (fromString)
 import Data.Function ((&))
@@ -43,9 +44,17 @@ notFound = responseLBS status404
                        [("Content-Type", "text/plain")]
                        "404 Not Found"
 
+onlyMethods :: [Method] -> Request -> (Request -> IO Response) -> IO Response
+onlyMethods methods req app = do
+  if requestMethod req `elem` methods
+  then app req
+  else return $ responseLBS status405
+                            [("Allow", BS.intercalate ", " methods)]
+                            "Method Not Allowed"
+
 app :: AppState -> Application
 app mvar req respond = do
   resp <- case stripEmptyR (pathInfo req) of
-    "balls":[] -> randomBalls mvar req
+    "balls":[] -> onlyMethods ["GET"] req $ randomBalls mvar
     _          -> return notFound
   respond resp
