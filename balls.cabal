@@ -25,7 +25,6 @@ executable balls
                        http-types,
                        optparse-applicative,
                        random,
-                       text,
                        unix,
                        wai,
                        warp

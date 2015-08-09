@@ -32,7 +32,10 @@ randomBalls mvar req = do
   url <- pickRandom mvar
   return $ responseLBS (if httpVersion req >= http11 then status303 else status302)
                        [("Content-Type", "text/plain"),
-                        ("Location", url)]
+                        ("Location", url),
+                        ("Cache-Control", "no-cache, no-store, must-revalidate"),
+                        ("Pragma", "no-cache"),
+                        ("Expire", "0")]
                        (fromStrict url)
 
 notFound :: Response
