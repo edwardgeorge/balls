@@ -1,20 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
-import Prelude hiding (lines)
-import Control.Concurrent (threadDelay)
-import qualified Control.Concurrent.Async as A
-import Control.Concurrent.MVar (MVar, newMVar, modifyMVar_, withMVar)
-import Control.Monad (forever, void)
-import qualified Data.ByteString as B
 import Data.ByteString.Lazy (fromStrict)
-import Data.ByteString.Char8 (lines)
 import Data.String (fromString)
 import Data.Function ((&))
 import Network.Wai
 import Network.HTTP.Types
 import qualified Network.Wai.Handler.Warp as W
-import System.Posix.Files (getFileStatus, modificationTime)
-import System.Random (randomRIO)
 import Text.Printf (printf)
 
 import CmdOptions
