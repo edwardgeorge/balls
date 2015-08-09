@@ -13,35 +13,16 @@ import Data.Function ((&))
 import Network.Wai
 import Network.HTTP.Types
 import qualified Network.Wai.Handler.Warp as W
-import Options.Applicative
 import System.Posix.Files (getFileStatus, modificationTime)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 
-type InputURL = B.ByteString
-type AppState = MVar [InputURL]
-
-seconds :: Int -> Int
-seconds n = n * 1000000
-
-data Options = Options { getPort :: Int
-                       , getHost :: String
-                       , imageFile :: String }
-             deriving (Show)
-
-options :: Parser Options
-options = Options <$> option auto (long "port"
-                                <> short 'p'
-                                <> metavar "PORT")
-                  <*> option auto (long "host"
-                                <> short 'H'
-                                <> metavar "IPADDR"
-                                <> value "127.0.0.1")
-                  <*> argument str (metavar "FILE")
+import CmdOptions
+import InputFile
 
 main :: IO ()
 main = do
-  opts <- execParser $ info (helper <*> options) fullDesc
+  opts <- parseOptions
   let (host, port) = (getHost opts, getPort opts)
       settings     = W.defaultSettings & W.setPort port
                                        & W.setHost (fromString host)
@@ -63,10 +44,6 @@ randomBalls mvar req = do
                         ("Location", url)]
                        (fromStrict url)
 
-pickRandom :: AppState -> IO InputURL
-pickRandom = flip withMVar pick
-  where pick vals = randomRIO (0, length vals - 1) >>= return . (vals !!)
-
 notFound :: Response
 notFound = responseLBS status404
                        [("Content-Type", "text/plain")]
@@ -78,23 +55,3 @@ app mvar req respond = do
     "balls":[] -> randomBalls mvar req
     _          -> return notFound
   respond resp
-
-
-readWithReload :: String -> IO AppState
-readWithReload fn = do
-  modtime <- getMT
-  mvar <- getLines >>= newMVar
-  void . A.async . loopM modtime $ \mt -> do threadDelay (seconds 60)
-                                             mt' <- getMT
-                                             if mt' > mt then do go mvar
-                                                                 putStrLn "reloaded input file"
-                                                                 return mt'
-                                                         else return mt
-  return mvar
-  where go       = flip modifyMVar_ $ const getLines
-        getLines = fmap lines $ B.readFile fn
-        getMT    = getFileStatus fn >>= return . modificationTime
-
-loopM :: Monad m => a -> (a -> m a) -> m b
-{-# INLINE loopM #-}
-loopM inp act = let a' i = act i >>= a' in a' inp
