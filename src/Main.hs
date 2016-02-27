@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
-import qualified Data.ByteString as BS
-import Data.ByteString.Lazy (fromStrict)
+import qualified Data.ByteString as BS         -- from bytestring
+import Data.ByteString.Lazy (fromStrict)       -- from bytestring
 import Data.String (fromString)
 import Data.Function ((&))
-import Network.Wai
-import Network.HTTP.Types
-import qualified Network.Wai.Handler.Warp as W
+import Network.Wai                             -- from wai
+import Network.HTTP.Types                      -- from http-types
+import qualified Network.Wai.Handler.Warp as W -- from warp
 import Text.Printf (printf)
-import URI.ByteString (serializeURI') -- from uri-bytestring
+import URI.ByteString (serializeURI')          -- from uri-bytestring
 
 import CmdOptions
 import InputFile

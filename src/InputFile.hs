@@ -4,14 +4,14 @@ module InputFile (AppState,
                   readWithReload) where
 import Prelude hiding (lines)
 import Control.Concurrent (threadDelay)
-import qualified Control.Concurrent.Async as A
+import qualified Control.Concurrent.Async as A                -- from async
 import Control.Concurrent.MVar (MVar, newMVar, modifyMVar_, withMVar)
 import Control.Monad (void)
-import qualified Data.ByteString as B
-import Data.ByteString.Char8 (lines)
+import qualified Data.ByteString as B                         -- from bytestring
+import Data.ByteString.Char8 (lines)                          -- from bytestring
 import URI.ByteString (URI, parseURI, strictURIParserOptions) -- from uri-bytestring
-import System.Posix.Files (getFileStatus, modificationTime)
-import System.Random (randomRIO)
+import System.Posix.Files (getFileStatus, modificationTime)   -- from unix
+import System.Random (randomRIO)                              -- from random
 
 type AppState = MVar [URI]
 

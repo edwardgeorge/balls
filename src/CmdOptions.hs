@@ -1,6 +1,6 @@
 module CmdOptions (Options(..),
                    parseOptions) where
-import Options.Applicative
+import Options.Applicative  -- from optparse-applicative
 
 data Options = Options { getPort :: Int
                        , getHost :: String
