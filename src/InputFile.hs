@@ -1,4 +1,5 @@
 module InputFile (AppState,
+                  URI,
                   pickRandom,
                   readWithReload) where
 import Prelude hiding (lines)
@@ -8,16 +9,16 @@ import Control.Concurrent.MVar (MVar, newMVar, modifyMVar_, withMVar)
 import Control.Monad (void)
 import qualified Data.ByteString as B
 import Data.ByteString.Char8 (lines)
+import URI.ByteString (URI, parseURI, strictURIParserOptions) -- from uri-bytestring
 import System.Posix.Files (getFileStatus, modificationTime)
 import System.Random (randomRIO)
 
-type InputURL = B.ByteString
-type AppState = MVar [InputURL]
+type AppState = MVar [URI]
 
 seconds :: Int -> Int
 seconds n = n * 1000000
 
-pickRandom :: AppState -> IO InputURL
+pickRandom :: AppState -> IO URI
 pickRandom = flip withMVar pick
   where pick vals = randomRIO (0, length vals - 1) >>= return . (vals !!)
 
@@ -33,8 +34,14 @@ readWithReload fn = do
                                                          else return mt
   return mvar
   where go       = flip modifyMVar_ $ const getLines
-        getLines = fmap lines $ B.readFile fn
+        getLines = do d <- B.readFile fn
+                      rightsLog . map (parseURI strictURIParserOptions) $ lines d
         getMT    = getFileStatus fn >>= return . modificationTime
+
+rightsLog :: Show a => [Either a b] -> IO [b]
+rightsLog = foldr go (return [])
+  where go (Left  v) b = print v >> b
+        go (Right a) b = (a:) <$> b
 
 loopM :: Monad m => a -> (a -> m a) -> m b
 {-# INLINE loopM #-}

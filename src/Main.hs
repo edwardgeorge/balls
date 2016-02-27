@@ -8,6 +8,7 @@ import Network.Wai
 import Network.HTTP.Types
 import qualified Network.Wai.Handler.Warp as W
 import Text.Printf (printf)
+import URI.ByteString (serializeURI') -- from uri-bytestring
 
 import CmdOptions
 import InputFile
@@ -30,7 +31,7 @@ stripEmptyR = foldr go []
 
 randomBalls :: AppState -> Request -> IO Response
 randomBalls mvar req = do
-  url <- pickRandom mvar
+  url <- serializeURI' <$> pickRandom mvar
   return $ responseLBS (if httpVersion req >= http11 then status303 else status302)
                        [("Content-Type", "text/plain"),
                         ("Location", url),
