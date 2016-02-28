@@ -47,12 +47,15 @@ instance HasServer (Redirect URI) where
                     then status303
                     else status302
                 uri = serializeURI output
-            succeedWith $ responseLBS v [("Location", BB.toByteString uri)] (BB.toLazyByteString uri)
+            succeedWith $ responseLBS v [("Location", BB.toByteString uri),
+                                         ("Content-Type", "text/uri-list")] (BB.toLazyByteString uri)
     | pathIsEmpty request && requestMethod request /= methodGet =
         respond $ failWith WrongMethod
     | otherwise = respond $ failWith NotFound
 
-instance (GetHeaders (Headers h URI), Member h "Location" ~ 'False)
+instance (GetHeaders (Headers h URI),
+          Member h "Location" ~ 'False,
+          Member h "Content-Type" ~ 'False)
          => HasServer (Redirect (Headers h URI)) where
   type ServerT (Redirect (Headers h URI)) m = m (Headers h URI)
   route Proxy action request respond
@@ -66,7 +69,9 @@ instance (GetHeaders (Headers h URI), Member h "Location" ~ 'False)
                     else status302
                 uri = serializeURI $ getResponse output
                 headers = getHeaders output
-            succeedWith $ responseLBS v (("Location", BB.toByteString uri) : headers) (BB.toLazyByteString uri)
+            succeedWith $ responseLBS v (("Location", BB.toByteString uri)
+                                        :("Content-Type", "text/uri-list")
+                                        :headers) (BB.toLazyByteString uri)
     | pathIsEmpty request && requestMethod request /= methodGet =
         respond $ failWith WrongMethod
     | otherwise = respond $ failWith NotFound

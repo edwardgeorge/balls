@@ -45,7 +45,8 @@ server _ st = do url <- liftIO $ pickRandom st
 app :: NonEmpty (String, AppState) -> Application
 app as = makeServer as server
 
-makeServer :: NonEmpty (String, a) -> (forall p n. p (n :: Symbol) -> a -> Server (API n))
+makeServer :: NonEmpty (String, a)
+           -> (forall p n. p (n :: Symbol) -> a -> Server (API n))
            -> Application
 makeServer ((x, a) :| xs) view = case someSymbolVal x of
   SomeSymbol y -> foo' (bar y) (view y a) xs view serve
