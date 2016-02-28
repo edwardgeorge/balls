@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
+import Control.Monad (void)
 import Data.String (fromString)
 import Data.Function ((&))
 import qualified Network.Wai.Handler.Warp as W -- from warp
@@ -17,6 +18,7 @@ main = do
       settings     = W.defaultSettings & W.setPort port
                                        & W.setHost (fromString host)
       files        = ("balls", imageFile opts) : extraImages opts
-  putStrLn $ printf " listening on http://%s:%d/" host port
   routes <- sequence $ fmap (sequence . fmap readWithReload) files
+  putStrLn $ printf " listening on http://%s:%d/" host port
+  void . sequence $ map (\(a, b) -> putStrLn $ " - /" ++ a ++ " from: " ++ b) files
   W.runSettings settings $ SAPI.app routes
