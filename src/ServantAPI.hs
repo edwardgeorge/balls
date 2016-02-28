@@ -9,6 +9,7 @@ module ServantAPI where
 import qualified Blaze.ByteString.Builder as BB  -- from blaze-builder
 import Control.Monad.IO.Class (liftIO)           -- from transformers
 import Control.Monad.Trans.Either (left)         -- from either
+import Data.List.NonEmpty (NonEmpty(..))         -- from semigroups
 import Data.Proxy (Proxy(..))
 import GHC.TypeLits
 import Network.HTTP.Types (http11)  -- from http-types
@@ -50,13 +51,12 @@ server :: proxy (n :: Symbol) -> AppState -> Server (API n)
 server _ st = do url <- liftIO $ pickRandom st
                  return $ cacheHeaders url
 
-app :: [(String, AppState)] -> Application
+app :: NonEmpty (String, AppState) -> Application
 app as = makeServer as server
 
-makeServer :: [(String, a)] -> (forall p n. p (n :: Symbol) -> a -> Server (API n))
+makeServer :: NonEmpty (String, a) -> (forall p n. p (n :: Symbol) -> a -> Server (API n))
            -> Application
-makeServer []          _    = error "empty endpoints"
-makeServer ((x, a):xs) view = case someSymbolVal x of
+makeServer ((x, a) :| xs) view = case someSymbolVal x of
   SomeSymbol y -> foo' (bar y) (view y a) xs view serve
   where bar :: Proxy (n :: Symbol) -> Proxy (API n)
         bar _ = Proxy

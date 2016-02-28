@@ -27,6 +27,7 @@ executable balls
                        http-types,
                        optparse-applicative,
                        random-fu,
+                       semigroups,
                        servant,
                        servant-server,
                        transformers,
