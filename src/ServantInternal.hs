@@ -12,6 +12,7 @@ module ServantInternal (HttpVersion, Redirect) where
 import qualified Blaze.ByteString.Builder as BB  -- from blaze-builder
 import Control.Monad.Trans.Either (runEitherT)   -- from either
 import GHC.TypeLits
+import qualified Network.HTTP.Types as HT        -- from http-types
 import Network.HTTP.Types (HttpVersion,
                            http11,
                            methodGet,
@@ -34,6 +35,10 @@ instance HasServer api => HasServer (HttpVersion :> api) where
     in route (Proxy :: Proxy api) (subserver v) request response
 
 data Redirect (a :: *)
+
+filterHeaders :: [HT.Header] -> [HT.Header]
+filterHeaders = filter $ \(a, _) -> a `elem` [
+  "Content-Type", "Location"]
 
 instance HasServer (Redirect URI) where
   type ServerT (Redirect URI) m = m URI
@@ -68,7 +73,7 @@ instance (GetHeaders (Headers h URI),
                     then status303
                     else status302
                 uri = serializeURI $ getResponse output
-                headers = getHeaders output
+                headers = filterHeaders $ getHeaders output
             succeedWith $ responseLBS v (("Location", BB.toByteString uri)
                                         :("Content-Type", "text/uri-list")
                                         :headers) (BB.toLazyByteString uri)
