@@ -17,14 +17,19 @@ cabal-version:       >=1.10
 
 executable balls
   main-is:             Main.hs
-  -- other-modules:       
+  other-modules:       InputFile, CmdOptions, ServantAPI
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9,
                        async,
+                       blaze-builder,
                        bytestring,
+                       either,
                        http-types,
                        optparse-applicative,
                        random,
+                       servant,
+                       servant-server,
+                       transformers,
                        unix,
                        uri-bytestring,
                        wai,
