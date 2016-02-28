@@ -16,7 +16,7 @@ main = do
   let (host, port) = (getHost opts, getPort opts)
       settings     = W.defaultSettings & W.setPort port
                                        & W.setHost (fromString host)
-  print opts
+      files        = ("balls", imageFile opts) : extraImages opts
   putStrLn $ printf " listening on http://%s:%d/" host port
-  mvar <- readWithReload (imageFile opts)
-  W.runSettings settings $ SAPI.app [("balls", mvar)]
+  routes <- sequence $ fmap (sequence . fmap readWithReload) files
+  W.runSettings settings $ SAPI.app routes
