@@ -11,7 +11,7 @@ import qualified Data.ByteString as B                         -- from bytestring
 import Data.ByteString.Char8 (lines)                          -- from bytestring
 import URI.ByteString (URI, parseURI, strictURIParserOptions) -- from uri-bytestring
 import System.Posix.Files (getFileStatus, modificationTime)   -- from unix
-import System.Random (randomRIO)                              -- from random
+import Data.Random (sample, randomElement)                    -- from random-fu
 
 type AppState = MVar [URI]
 
@@ -19,8 +19,7 @@ seconds :: Int -> Int
 seconds n = n * 1000000
 
 pickRandom :: AppState -> IO URI
-pickRandom = flip withMVar pick
-  where pick vals = randomRIO (0, length vals - 1) >>= return . (vals !!)
+pickRandom = flip withMVar $ sample . randomElement
 
 readWithReload :: String -> IO AppState
 readWithReload fn = do
@@ -35,7 +34,10 @@ readWithReload fn = do
   return mvar
   where go       = flip modifyMVar_ $ const getLines
         getLines = do d <- B.readFile fn
-                      rightsLog . map (parseURI strictURIParserOptions) $ lines d
+                      l <- rightsLog . map (parseURI strictURIParserOptions) $ lines d
+                      case l of
+                        [] -> error "empty url list provided"
+                        _  -> return l
         getMT    = getFileStatus fn >>= return . modificationTime
 
 rightsLog :: Show a => [Either a b] -> IO [b]
