@@ -36,7 +36,7 @@ type CacheHeaders = '[Header "Cache-Control" String,
                       Header "Pragma" String,
                       Header "Expire" String]
 
-type API n = (n :: Symbol) :> HttpVersion :> Redirect (Headers  CacheHeaders URI)
+type API n = (n :: Symbol) :> Redirect (Headers  CacheHeaders URI)
 
 cacheHeaders :: (AddHeader "Cache-Control" String orig c,
                  AddHeader "Pragma"        String orig1 orig,
@@ -47,8 +47,8 @@ cacheHeaders = addHeader "no-cache, no-store, must-revalidate"
              . addHeader "0"
 
 server :: proxy (n :: Symbol) -> AppState -> Server (API n)
-server _ st v = do url <- liftIO $ pickRandom st
-                   return $ cacheHeaders url
+server _ st = do url <- liftIO $ pickRandom st
+                 return $ cacheHeaders url
 
 app :: [(String, AppState)] -> Application
 app as = makeServer as server
