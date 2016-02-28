@@ -16,7 +16,7 @@ import Network.HTTP.Types (HttpVersion,
                            http11,
                            methodGet,
                            status302,
-                           status303)  -- from http-types
+                           status303)            -- from http-types
 import Network.Wai (httpVersion,
                     requestMethod,
                     responseLBS)                 -- from wai
@@ -24,8 +24,7 @@ import Servant hiding (URI)                      -- from servant-server
 import Servant.Server.Internal                   -- from servant-server
 import Servant.Server.Internal.ServantErr (
   responseServantErr)                            -- from servant-server
-import Network.Wai.Internal (Response(..))       -- from wai
-import URI.ByteString (URI, serializeURI)            -- from uri-bytestring
+import URI.ByteString (URI, serializeURI)        -- from uri-bytestring
 
 -- should be implemented in next version of servant
 instance HasServer api => HasServer (HttpVersion :> api) where

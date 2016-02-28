@@ -6,15 +6,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 module ServantAPI where
-import qualified Blaze.ByteString.Builder as BB  -- from blaze-builder
-import Control.Monad.IO.Class (liftIO)           -- from transformers
-import Control.Monad.Trans.Either (left)         -- from either
-import Data.List.NonEmpty (NonEmpty(..))         -- from semigroups
+import Control.Monad.IO.Class (liftIO)   -- from transformers
+import Data.List.NonEmpty (NonEmpty(..)) -- from semigroups
 import Data.Proxy (Proxy(..))
 import GHC.TypeLits
-import Network.HTTP.Types (http11)  -- from http-types
-import qualified Network.HTTP.Types.Header as HT -- from http-types
-import Network.Wai (Application)                 -- from wai
+import Network.Wai (Application)         -- from wai
 import Servant ((:>),
                 (:<|>)(..),
                 serve,
@@ -23,12 +19,7 @@ import Servant ((:>),
                 Header,
                 Headers,
                 HasServer,
-                Get,
-                Server,
-                ServantErr(..),
-                err302,
-                err303)                         -- from servant-server
-import URI.ByteString (serializeURI)            -- from uri-bytestring
+                Server)                  -- from servant-server
 
 import InputFile
 import ServantInternal
