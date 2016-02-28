@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 
 executable balls
   main-is:             Main.hs
-  other-modules:       InputFile, CmdOptions, ServantAPI
+  other-modules:       InputFile, CmdOptions, ServantAPI, ServantInternal
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9,
                        async,

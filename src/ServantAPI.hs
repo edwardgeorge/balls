@@ -11,6 +11,7 @@ import Control.Monad.IO.Class (liftIO)           -- from transformers
 import Control.Monad.Trans.Either (left)         -- from either
 import Data.Proxy (Proxy(..))
 import GHC.TypeLits
+import Network.HTTP.Types (http11)  -- from http-types
 import qualified Network.HTTP.Types.Header as HT -- from http-types
 import Network.Wai (Application)                 -- from wai
 import Servant ((:>),
@@ -20,12 +21,14 @@ import Servant ((:>),
                 Get,
                 Server,
                 ServantErr(..),
-                err302)                         -- from servant-server
+                err302,
+                err303)                         -- from servant-server
 import URI.ByteString (serializeURI)            -- from uri-bytestring
 
 import InputFile
+import ServantInternal
 
-type API n = (n :: Symbol) :> Get '[] ()
+type API n = (n :: Symbol) :> HttpVersion :> Get '[] ()
 
 cacheHeaders' :: [HT.Header]
 cacheHeaders' = [(HT.hCacheControl, "no-cache, no-store, must-revalidate"),
@@ -33,16 +36,17 @@ cacheHeaders' = [(HT.hCacheControl, "no-cache, no-store, must-revalidate"),
                  (HT.hExpires,      "0")]
 
 -- can only do this with an error currently
-redirect :: URI -> ServantErr
-redirect u = let uri = serializeURI u
-             in err302 { -- TODO: 303 if HTTP1.1, when HttpVersion lands in servant
+redirect :: HttpVersion -> URI -> ServantErr
+redirect v u = let uri = serializeURI u
+                   res = if v == http11 then err303 else err302
+               in res {
   errBody    = BB.toLazyByteString uri,
   errHeaders = (HT.hLocation, BB.toByteString uri) :
                (HT.hContentType, "text/plain") : cacheHeaders' }
 
 server :: proxy (n :: Symbol) -> AppState -> Server (API n)
-server _ st = do url <- liftIO $ pickRandom st
-                 left $ redirect url
+server _ st v = do url <- liftIO $ pickRandom st
+                   left $ redirect v url
 
 app :: [(String, AppState)] -> Application
 app as = makeServer as server
