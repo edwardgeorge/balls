@@ -17,6 +17,10 @@ import Network.Wai (Application)                 -- from wai
 import Servant ((:>),
                 (:<|>)(..),
                 serve,
+                AddHeader,
+                addHeader,
+                Header,
+                Headers,
                 HasServer,
                 Get,
                 Server,
@@ -28,25 +32,23 @@ import URI.ByteString (serializeURI)            -- from uri-bytestring
 import InputFile
 import ServantInternal
 
-type API n = (n :: Symbol) :> HttpVersion :> Get '[] ()
+type CacheHeaders = '[Header "Cache-Control" String,
+                      Header "Pragma" String,
+                      Header "Expire" String]
 
-cacheHeaders' :: [HT.Header]
-cacheHeaders' = [(HT.hCacheControl, "no-cache, no-store, must-revalidate"),
-                 (HT.hPragma,       "no-cache"),
-                 (HT.hExpires,      "0")]
+type API n = (n :: Symbol) :> HttpVersion :> Redirect (Headers  CacheHeaders URI)
 
--- can only do this with an error currently
-redirect :: HttpVersion -> URI -> ServantErr
-redirect v u = let uri = serializeURI u
-                   res = if v == http11 then err303 else err302
-               in res {
-  errBody    = BB.toLazyByteString uri,
-  errHeaders = (HT.hLocation, BB.toByteString uri) :
-               (HT.hContentType, "text/plain") : cacheHeaders' }
+cacheHeaders :: (AddHeader "Cache-Control" String orig c,
+                 AddHeader "Pragma"        String orig1 orig,
+                 AddHeader "Expire"        String orig2 orig1)
+             => orig2 -> c
+cacheHeaders = addHeader "no-cache, no-store, must-revalidate"
+             . addHeader "no-cache"
+             . addHeader "0"
 
 server :: proxy (n :: Symbol) -> AppState -> Server (API n)
 server _ st v = do url <- liftIO $ pickRandom st
-                   left $ redirect v url
+                   return $ cacheHeaders url
 
 app :: [(String, AppState)] -> Application
 app as = makeServer as server
