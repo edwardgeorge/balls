@@ -49,15 +49,15 @@ makeServer :: NonEmpty (String, a)
            -> (forall p n. p (n :: Symbol) -> a -> Server (API n))
            -> Application
 makeServer ((x, a) :| xs) view = case someSymbolVal x of
-  SomeSymbol y -> foo' (bar y) (view y a) xs view serve
-  where bar :: Proxy (n :: Symbol) -> Proxy (API n)
-        bar _ = Proxy
+  SomeSymbol y -> addAdditional (toAPI y) (view y a) xs view serve
+  where toAPI :: Proxy (n :: Symbol) -> Proxy (API n)
+        toAPI _ = Proxy
 
-foo' :: HasServer n => Proxy n -> Server n -> [(String, a)]
-     -> (forall p m. p (m :: Symbol) -> a -> Server (API m))
-     -> (forall m. HasServer m => Proxy m -> Server m -> r) -> r
-foo' p s []          _    f = f p s
-foo' p s ((x, a):xs) view f = case someSymbolVal x of
-  SomeSymbol y -> foo' (bar' y p) (view y a :<|> s) xs view f
-  where bar' :: Proxy (n :: Symbol) -> Proxy m -> Proxy (API n :<|> m)
-        bar' _ _ = Proxy
+addAdditional :: HasServer n => Proxy n -> Server n -> [(String, a)]
+              -> (forall p m. p (m :: Symbol) -> a -> Server (API m))
+              -> (forall m. HasServer m => Proxy m -> Server m -> r) -> r
+addAdditional p s []          _    f = f p s
+addAdditional p s ((x, a):xs) view f = case someSymbolVal x of
+  SomeSymbol y -> addAdditional (tlCons y p) (view y a :<|> s) xs view f
+  where tlCons :: Proxy (n :: Symbol) -> Proxy m -> Proxy (API n :<|> m)
+        tlCons _ _ = Proxy
