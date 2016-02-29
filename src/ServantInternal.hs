@@ -11,7 +11,8 @@
 module ServantInternal (HttpVersion, Redirect) where
 import qualified Blaze.ByteString.Builder as BB  -- from blaze-builder
 import Control.Monad.Trans.Either (runEitherT)   -- from either
-import GHC.TypeLits
+import Data.Proxy (Proxy(..))
+import GHC.TypeLits (Symbol)
 import qualified Network.HTTP.Types as HT        -- from http-types
 import Network.HTTP.Types (HttpVersion,
                            http11,
@@ -21,7 +22,12 @@ import Network.HTTP.Types (HttpVersion,
 import Network.Wai (httpVersion,
                     requestMethod,
                     responseLBS)                 -- from wai
-import Servant hiding (URI)                      -- from servant-server
+import Servant ((:>),
+                Headers,
+                Header,
+                GetHeaders,
+                getResponse,
+                getHeaders)                      -- from servant-server
 import Servant.Server.Internal                   -- from servant-server
 import Servant.Server.Internal.ServantErr (
   responseServantErr)                            -- from servant-server
