@@ -30,7 +30,7 @@ type CacheHeaders = '[Header "Cache-Control" String,
                       Header "Pragma" String,
                       Header "Expire" String]
 
-type API n = (n :: Symbol) :> Redirect (Headers  CacheHeaders URI)
+type API n = (n :: Symbol) :> Redirect (Headers CacheHeaders URI)
 
 cacheHeaders :: (AddHeader "Cache-Control" String orig c,
                  AddHeader "Pragma"        String orig1 orig,
