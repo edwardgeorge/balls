@@ -5,11 +5,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
-module ServantAPI where
+module ServantAPI (app) where
 import Control.Monad.IO.Class (liftIO)   -- from transformers
 import Data.List.NonEmpty (NonEmpty(..)) -- from semigroups
 import Data.Proxy (Proxy(..))
-import GHC.TypeLits
+import GHC.TypeLits (Symbol,
+                     SomeSymbol(..),
+                     someSymbolVal)
 import Network.Wai (Application)         -- from wai
 import Servant ((:>),
                 (:<|>)(..),
